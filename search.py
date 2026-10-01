@@ -104,8 +104,38 @@ def uniformCostSearch(problem: SearchProblem):
 
     Team assignment: Member 4 (Q3).
     """
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # Priority queue stores tuples of: (state, actions, accumulated_cost)
+    # The queue priority is the accumulated path cost g(n)
+    frontier = util.PriorityQueue()
+    start_state = problem.getStartState()
+    frontier.push((start_state, [], 0), 0)
+
+    # Set to keep track of expanded states
+    expanded = set()
+
+    while not frontier.isEmpty():
+        state, actions, cost = frontier.pop()
+
+        # Skip duplicate entries for states already expanded
+        if state in expanded:
+            continue
+
+        # Check goal condition when state is popped (ensures optimal solution)
+        if problem.isGoalState(state):
+            return actions
+
+        # Mark state as expanded
+        expanded.add(state)
+
+        # Generate and evaluate successors
+        for successor, action, step_cost in problem.getSuccessors(state):
+            if successor not in expanded:
+                new_actions = actions + [action]
+                new_cost = cost + step_cost
+                frontier.push((successor, new_actions, new_cost), new_cost)
+
+    # Return empty list if no path is found
+    return []
 
 def nullHeuristic(state, problem=None):
     """
