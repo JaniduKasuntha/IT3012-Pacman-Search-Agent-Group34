@@ -18,6 +18,7 @@ Pacman agents (in searchAgents.py).
 """
 
 import util
+from util import PriorityQueue
 
 class SearchProblem:
     """
@@ -150,6 +151,33 @@ def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     Team assignment: Member 1 (Q4).
     """
     "*** YOUR CODE HERE ***"
+    frontier = PriorityQueue()
+    start_state = problem.getStartState()
+    
+    # Item in queue: (current_state, action_list, path_cost_g)
+    # Priority: f(n) = g(n) + h(n)
+    initial_h = heuristic(start_state, problem)
+    frontier.push((start_state, [], 0), initial_h)
+    
+    visited = {}  # state -> lowest g(n) to reach it
+
+    while not frontier.isEmpty():
+        state, actions, current_g = frontier.pop()
+
+        if state in visited and visited[state] <= current_g:
+            continue
+        visited[state] = current_g
+
+        if problem.isGoalState(state):
+            return actions
+
+        for next_state, action, step_cost in problem.getSuccessors(state):
+            new_g = current_g + step_cost
+            if next_state not in visited or visited[next_state] > new_g:
+                f_cost = new_g + heuristic(next_state, problem)
+                frontier.push((next_state, actions + [action], new_g), f_cost)
+
+    return []
     util.raiseNotDefined()
 
 
