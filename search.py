@@ -90,7 +90,36 @@ def depthFirstSearch(problem: SearchProblem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # Fringe is a LIFO stack, so the most recently discovered node is explored first (DFS)
+    fringe = util.Stack()
+    # Each fringe entry is (state, list of actions taken from the start to reach it)
+    fringe.push((problem.getStartState(), []))
+    # States that have already been expanded (graph search: never expand a state twice)
+    expanded = set()
+
+    while not fringe.isEmpty():
+        # Pop the deepest (most recently pushed) node
+        state, actions = fringe.pop()
+
+        # Skip this node if its state was already expanded via another path
+        if state in expanded:
+            continue
+
+        # Goal test on pop (not on push), so the returned path is the one actually reached
+        if problem.isGoalState(state):
+            return actions
+
+        # Mark the state as expanded before generating its successors
+        expanded.add(state)
+
+        # Push successors in the order getSuccessors returns them
+        for successor, action, stepCost in problem.getSuccessors(state):
+            if successor not in expanded:
+                # Extend the path with the action that leads to this successor
+                fringe.push((successor, actions + [action]))
+
+    # Fringe exhausted without reaching a goal: no solution
+    return []
 
 def breadthFirstSearch(problem: SearchProblem):
     """Search the shallowest nodes in the search tree first.
