@@ -134,7 +134,6 @@ def uniformCostSearch(problem: SearchProblem):
 
     Team assignment: Member 4 (Q3).
     """
-    #
     # Priority queue stores tuples of: (state, actions, accumulated_cost)
     # The queue priority is the accumulated path cost g(n)
     frontier = util.PriorityQueue()
