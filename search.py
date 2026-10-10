@@ -127,7 +127,36 @@ def breadthFirstSearch(problem: SearchProblem):
     Team assignment: Member 3 (Q2).
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # Fringe is a FIFO queue, so the shallowest (earliest discovered) node is explored first (BFS)
+    fringe = util.Queue()
+    # Each fringe entry is (state, list of actions taken from the start to reach it)
+    fringe.push((problem.getStartState(), []))
+    # States that have already been expanded (graph search: never expand a state twice)
+    expanded = set()
+
+    while not fringe.isEmpty():
+        # Pop the shallowest (least recently pushed) node
+        state, actions = fringe.pop()
+
+        # Skip this node if its state was already expanded via another path
+        if state in expanded:
+            continue
+
+        # Goal test on pop (not on push), so the returned path is the one actually reached
+        if problem.isGoalState(state):
+            return actions
+
+        # Mark the state as expanded before generating its successors
+        expanded.add(state)
+
+        # Push successors in the order getSuccessors returns them
+        for successor, action, stepCost in problem.getSuccessors(state):
+            if successor not in expanded:
+                # Extend the path with the action that leads to this successor
+                fringe.push((successor, actions + [action]))
+
+    # Fringe exhausted without reaching a goal: no solution
+    return []
 
 def uniformCostSearch(problem: SearchProblem):
     """Search the node of least total cost first.
