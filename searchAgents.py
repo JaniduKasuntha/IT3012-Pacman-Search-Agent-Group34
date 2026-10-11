@@ -467,28 +467,75 @@ class AStarFoodSearchAgent(SearchAgent):
         self.searchType = FoodSearchProblem
 
 def foodHeuristic(state, problem):
+    """
+    Your heuristic for the FoodSearchProblem goes here.
+
+    Team assignment: (Q7).
+
+    The heuristic is the largest of the following lower bounds on the remaining
+    cost, using true maze distances d(., .):
+
+      (1) max over remaining foods f of d(position, f)
+          -- Pacman must at least reach the farthest dot.
+      (2) max over every pair of remaining foods (a, b) of
+          min(d(position, a), d(position, b)) + d(a, b)
+          -- Pacman must first reach whichever of a, b it eats first, and
+             later travel from that dot to the other one.
+
+    Maze distances are cached in problem.heuristicInfo under a symmetric key,
+    so each BFS is run only once per pair of points for the whole search.
+
+    The heuristic is admissible and consistent (see the proofs in the comments
+    below), returns 0 at a goal state and never returns a negative value.
+    """
     position, foodGrid = state
+    "*** YOUR CODE HERE ***"
     foodList = foodGrid.asList()
 
+    # Goal state: no food left, so the remaining cost is exactly 0.
     if len(foodList) == 0:
         return 0
 
-    max_pacman_to_food = 0
-    farthest_food = foodList[0]  # <--- CRITICAL INITIALIZATION
+    def dist(a, b):
+        # Symmetric key: (a, b) and (b, a) share one cache entry.
+        key = (a, b) if a <= b else (b, a)
+        if key not in problem.heuristicInfo:
+            problem.heuristicInfo[key] = mazeDistance(a, b, problem.startingGameState)
+        return problem.heuristicInfo[key]
 
-    for food in foodList:
-        dist = mazeDistance(position, food, problem.startingGameState)
-        if dist > max_pacman_to_food:
-            max_pacman_to_food = dist
-            farthest_food = food
+    toFood = {food: dist(position, food) for food in foodList}
 
-    max_food_to_food = 0
-    for food in foodList:
-        dist = mazeDistance(farthest_food, food, problem.startingGameState)
-        if dist > max_food_to_food:
-            max_food_to_food = dist
+    # Term (1): distance to the farthest remaining dot.
+    h = max(toFood.values())
 
-    return max(max_pacman_to_food, max_food_to_food)
+    # Term (2): for each pair of dots, reach the nearer one, then the other.
+    for i in range(len(foodList)):
+        a = foodList[i]
+        for j in range(i + 1, len(foodList)):
+            b = foodList[j]
+            h = max(h, min(toFood[a], toFood[b]) + dist(a, b))
+
+    # Admissible: every solution visits every remaining dot.
+    #   Term (1): it must at least walk to the farthest dot f, which costs
+    #   at least d(position, f).
+    #   Term (2): for any two dots a and b, whichever it reaches first costs
+    #   at least min(d(position, a), d(position, b)), and it must later walk
+    #   from that dot to the other, at least d(a, b) more.
+    #   d is the exact shortest-path distance, so neither term overestimates.
+    #
+    # Consistent: h(s) <= 1 + h(s') for every step s -> s' (cost 1).
+    #   Each d(position, f) changes by at most 1 when Pacman moves one square,
+    #   so every term, and hence their max, drops by at most 1 if no dot is
+    #   eaten. If the step eats dot a, the terms involving a disappear, but
+    #   Pacman now stands on a, so for any other dot b term (1) at s' is at
+    #   least d(a, b). The old pair term for (a, b) was at most
+    #   min(1, d(position, b)) + d(a, b) <= 1 + d(a, b), and the old term (1)
+    #   value for a was 1; so h still drops by at most 1. (If a was the last
+    #   dot, h(s) = 1 and h(s') = 0.)
+    #
+    # Non-negative: h is a max of sums of non-negative distances, and it is
+    # 0 exactly at the goal (no food left).
+    return h
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
