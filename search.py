@@ -210,10 +210,11 @@ def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     Team assignment: Member 1 (Q4).
     """
     "*** YOUR CODE HERE ***"
+    # Frontier stores discovered states that have not yet been expanded.
     frontier = PriorityQueue()
     start_state = problem.getStartState()
     
-    # Item in queue: (current_state, action_list, path_cost_g)
+    # Calculate the starting heuristic (estimates the remaining cost)
     # Priority: f(n) = g(n) + h(n)
     initial_h = heuristic(start_state, problem)
     frontier.push((start_state, [], 0), initial_h)
@@ -229,7 +230,8 @@ def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
 
         if problem.isGoalState(state):
             return actions
-
+        
+        # the legal next states, the actions leading to them, and the costs of those actions.
         for next_state, action, step_cost in problem.getSuccessors(state):
             new_g = current_g + step_cost
             if next_state not in visited or visited[next_state] > new_g:

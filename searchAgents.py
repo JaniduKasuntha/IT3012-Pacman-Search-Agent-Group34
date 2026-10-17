@@ -496,13 +496,15 @@ def foodHeuristic(state, problem):
     if len(foodList) == 0:
         return 0
 
+    # Calculate maze distance once, save it, and reuse it
     def dist(a, b):
         # Symmetric key: (a, b) and (b, a) share one cache entry.
         key = (a, b) if a <= b else (b, a)
         if key not in problem.heuristicInfo:
             problem.heuristicInfo[key] = mazeDistance(a, b, problem.startingGameState)
         return problem.heuristicInfo[key]
-
+        
+    # Calculate the distance from Pacman to every food dot
     toFood = {food: dist(position, food) for food in foodList}
 
     # Term (1): distance to the farthest remaining dot.
@@ -521,7 +523,7 @@ def foodHeuristic(state, problem):
     #   Term (2): for any two dots a and b, whichever it reaches first costs
     #   at least min(d(position, a), d(position, b)), and it must later walk
     #   from that dot to the other, at least d(a, b) more.
-    #   d is the exact shortest-path distance, so neither term overestimates.
+    #      d is the exact shortest-path distance, so neither term overestimates.
     #
     # Consistent: h(s) <= 1 + h(s') for every step s -> s' (cost 1).
     #   Each d(position, f) changes by at most 1 when Pacman moves one square,
